@@ -1,0 +1,57 @@
+---
+- name: 下载cfssl
+  copy:
+    src: "{{ item }}"
+    dest: /usr/local/bin/
+    mode: 0755
+  with_items:
+    - cfssl
+    - cfssljson
+    - cfssl-certinfo
+
+- name: 创建etcd工作目录
+  file:
+    name: /var/lib/etcd
+    state: directory
+
+- name: 创建etcd证书目录
+  file:
+    name: /etc/etcd/ssl
+    state: directory
+
+- name: 复制etcd-csr.json文件
+  template:
+    src: etcd-csr.json.j2
+    dest: /etc/etcd/ssl/etcd-csr.json
+    mode: 0644
+
+- name: 创建etcd证书和私钥
+  shell: "cd /etc/etcd/ssl && cfssl gencert -ca=/etc/kubernetes/ssl/ca.pem \
+          -ca-key=/etc/kubernetes/ssl/ca-key.pem \
+          -config=/etc/kubernetes/ssl/ca-config.json \
+          -profile=kubernetes etcd-csr.json | cfssljson -bare etcd"
+
+- name: 下载etcd文件
+  copy:
+    src: "{{ item }}"
+    dest: /usr/local/bin
+    mode: 0755
+  with_items:
+    - etcd
+    - etcdctl
+
+- name: 分发etcd systemd 文件
+  template:
+    src: etcd.service.j2
+    dest: /etc/systemd/system/etcd.service
+    mode: 0755
+  notify: restart etcd
+
+- name: reload etcd服务
+  shell: systemctl daemon-reload
+
+- name: 启动etcd
+  service:
+    name: etcd
+    state: restarted
+    enabled: yes
