@@ -1,0 +1,46 @@
+---
+- name: 安装基础软件
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - vim
+    - wget
+    - ntp
+    - net-tools
+
+- name: 启动ntp服务
+  service:
+     name: ntpdate
+     state: started
+     enabled: yes
+
+- name: ntp时间同步
+  shell: "echo '*/30 * * * * ntpdate ntp1.aliyun.com >/dev/null 2>&1' >/tmp/crontab2.tmp && crontab /tmp/crontab2.tmp"
+
+- name: 关闭防火墙firewalld
+  service:
+    name: firewalld
+    state: stopped
+    enabled: no
+
+- name: 关闭selinux
+  shell: setenforce 0
+
+- name: 修改selinux enforcing
+  lineinfile:
+    dest: /etc/selinux/config
+    regexp: '^SELINUX='
+    line: 'SELINUX=enforcing'
+
+- name: 关闭swap
+  shell: "swapoff -a && sed -i 's/.*swap.*/#&/' /etc/fstab"
+
+- name: 复制内核参数
+  copy:
+    src: k8s.conf
+    dest: /etc/sysctl.d/k8s.conf
+    mode: 0644
+
+- name: 内核参数生效
+  shell: "modprobe br_netfilter && sysctl -p /etc/sysctl.d/k8s.conf"
