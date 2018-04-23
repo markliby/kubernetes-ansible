@@ -1,0 +1,16 @@
+---
+- name: 创建证书目录
+  file:
+    name: /etc/kubernetes/ssl
+    state: directory
+
+- name: 分发证书
+  copy:
+    src: "{{ item }}"
+    dest: /etc/kubernetes/ssl
+  with_items:
+    - ca-config.json
+    - ca.pem
+    - ca-key.pem
+    - ca-csr.json
+    - ca.csr
