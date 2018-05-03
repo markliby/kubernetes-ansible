@@ -1,0 +1,83 @@
+---
+- name: 下载node组件
+  copy:
+    src: "{{ item }}"
+    dest: /usr/local/bin/
+    mode: 0755
+  with_items:
+    - kube-proxy
+    - kubelet
+
+- name: 安装docker
+  yum:
+    name: docker
+    state: latest
+
+- name: 修改docker配置文件
+  lineinfile:
+    dest: /etc/sysconfig/docker
+    regexp: '^OPTIONS=.*$'
+    line: "OPTIONS='--selinux-enabled=false --log-driver=journald --signature-verification=false'"
+
+- name: 启动docker
+  service:
+    name: docker
+    state: restarted
+    enabled: yes
+
+- name: 创建kubelet bootstrapping kubeconfig
+  copy:
+    src: bootstrap.kubeconfig
+    dest: /etc/kubernetes/bootstrap.kubeconfig
+    mode: 0644
+
+- name: 创建kubelet工作目录
+  file:
+    name: /var/lib/kubelet
+    state: directory
+
+- name: 创建kubelet systemd unit文件
+  template:
+    src: kubelet.service.j2
+    dest: /etc/systemd/system/kubelet.service
+    mode: 0755
+
+- name: daemon-reload
+  shell: "systemctl daemon-reload"
+
+- name: 启动kubelet
+  service:
+    name: kubelet
+    state: restarted
+    enabled: yes
+
+#kube-proxy
+- name: 分发proxy私钥
+  copy:
+    src: "{{ item }}"
+    dest: /etc/kubernetes/ssl/
+    mode: 0644
+  with_items:
+    - kube-proxy.pem
+    - kube-proxy-key.pem
+
+- name: 分发kubeconfig
+  copy:
+    src: kube-proxy.kubeconfig
+    dest: /etc/kubernetes/
+    mode: 0644
+
+- name: 创建kube-proxy systemd unit 文件
+  template:
+    src: kube-proxy.service.j2
+    dest: /etc/systemd/system/kube-proxy.service
+    mode: 7550
+
+- name: reload
+  shell: "systemctl daemon-reload"
+
+- name: 启动kube-proxy
+  service:
+    name: kube-proxy
+    state: restarted
+    enabled: yes
