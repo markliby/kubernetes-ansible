@@ -18,6 +18,8 @@ ExecStart=/usr/local/bin/kubelet \
   --hairpin-mode promiscuous-bridge \
   --allow-privileged=true \
   --serialize-image-pulls=false \
+  --runtime-cgroups=/systemd/system.slice \
+  --kubelet-cgroups=/systemd/system.slice \
   --logtostderr=true \
   --v=2
 Restart=on-failure
