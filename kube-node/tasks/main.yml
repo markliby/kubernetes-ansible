@@ -19,6 +19,14 @@
     regexp: '^OPTIONS=.*$'
     line: "OPTIONS='--selinux-enabled=false --log-driver=journald --signature-verification=false'"
 
+- name: 修改docker cgroupdriver
+  lineinfile:
+    dest: /usr/lib/systemd/system/docker.service
+    regexp: '--exec-opt'
+    line: "--exec-opt native.cgroupdriver=cgroupfs \\"
+- name: daemon-reload
+  shell: "systemctl daemon-reload"
+
 - name: 启动docker
   service:
     name: docker

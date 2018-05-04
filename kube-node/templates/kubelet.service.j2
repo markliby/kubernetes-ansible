@@ -7,12 +7,11 @@ Requires=docker.service
 [Service]
 WorkingDirectory=/var/lib/kubelet
 ExecStart=/usr/local/bin/kubelet \
-  --address={{ ansible_ens33.ipv4.address }} \
+  --node-ip={{ ansible_ens33.ipv4.address }} \
   --hostname-override={{ ansible_ens33.ipv4.address }} \
   --pod-infra-container-image=registry.cn-hangzhou.aliyuncs.com/marklib/pause-amd64:3.0 \
-  --experimental-bootstrap-kubeconfig=/etc/kubernetes/bootstrap.kubeconfig \
+  --bootstrap-kubeconfig=/etc/kubernetes/bootstrap.kubeconfig \
   --kubeconfig=/etc/kubernetes/kubelet.kubeconfig \
-  --require-kubeconfig \
   --cert-dir=/etc/kubernetes/ssl \
   --cluster-dns={{ CLUSTER_DNS_SVC_IP }} \
   --cluster-domain={{ CLUSTER_DNS_DOMAIN }} \
