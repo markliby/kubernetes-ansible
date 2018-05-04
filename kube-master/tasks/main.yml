@@ -41,19 +41,19 @@
   template:
     src: kube-apiserver.service.j2
     dest: /etc/systemd/system/kube-apiserver.service
-    mode: 0755
+    mode: 0644
 
 - name: 创建kube-contronller-manager systemd unit 文件
   template:
     src: kube-controller-manager.service.j2
     dest: /etc/systemd/system/kube-controller-manager.service
-    mode: 0755
+    mode: 0644
 
 - name: 创建kube-scheduler systemd unit文件
   template:
     src: kube-scheduler.service.j2
     dest: /etc/systemd/system/kube-scheduler.service
-    mode: 0755
+    mode: 0644
 
 - name: daemon-reload
   shell: "systemctl daemon-reload"
